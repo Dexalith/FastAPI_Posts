@@ -2,9 +2,10 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from typing import List
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, update, delete
+from sqlalchemy.orm import Query
 
 from app.auth.depencies import get_current_author, get_post_check_owner
-from app.news.schemas import PostOut, PostCreate, PostUpdate
+from app.news.schemas import PostOut, PostCreate, PostUpdate, PaginationPosts
 from app.news.models import Author, Post
 from app.configuration_db.db_client import async_db
 
@@ -16,12 +17,23 @@ router = APIRouter(
 
 @router.get("", response_model=List[PostOut])
 async def get_list_posts(
+        pagination: PaginationPosts = Depends(),
+        published_only: bool = Query(False),
         session: AsyncSession = Depends(async_db.get_session)
 ):
-   query = select(Post)
-   result = await session.execute(query)
-   posts = result.scalars().all()
-   return posts
+    query = select(Post)
+
+    if published_only:
+        pub_query = query.where(Post.is_published == True)
+
+    result = await session.execute(
+        pub_query
+        .offset(pagination.offset)
+        .limit(pagination.size)
+        .order_by(Post.created_at.desc())
+    )
+    posts = result.scalars().all()
+    return posts
 
 
 @router.get("/published", response_model=List[PostOut])

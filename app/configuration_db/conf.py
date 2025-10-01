@@ -19,11 +19,11 @@ class AppConfig(BaseSettings):
     )
 
 class Config(BaseSettings):
-    db_name: str = "posts_db"
+    db_name: str = "your_db"
     db_host: str = "localhost"
     db_port: str = "5432"
-    db_username: str = "hasanmalbahov"
-    db_password: str = "postgres"
+    db_username: str = "username"
+    db_password: str = "password"
     db_logs: bool = False
     sqlalchemy_pool_size: int = 5
     sqlalchemy_pool_max_overflow: int = 10
